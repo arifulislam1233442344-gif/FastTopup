@@ -1,0 +1,472 @@
+```html
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fast Topup - Premium Gaming Shop</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;600;700&display=swap');
+        
+        body {
+            font-family: 'Hind Siliguri', sans-serif;
+            background-color: #0d1117;
+            color: white;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .gaming-card {
+            background: #161b22;
+            border: 1px solid #30363d;
+            transition: all 0.2s ease;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            inset: 0;
+            background-color: rgba(0,0,0,0.95);
+            align-items: center;
+            justify-content: center;
+            overflow-y: auto;
+        }
+        
+        .notice-animate {
+            display: inline-block;
+            white-space: nowrap;
+            animation: slideLeft 15s linear infinite;
+        }
+
+        @keyframes slideLeft {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+
+        .hidden-page { display: none; }
+        .active-nav { color: #58a6ff; }
+
+        .item-img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 12px;
+            margin-bottom: 8px;
+        }
+
+        .slide { display: none; }
+        .slide.active { display: block; animation: fadeIn 0.8s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .payment-option.selected {
+            border-color: #58a6ff;
+            background: rgba(88, 166, 255, 0.1);
+        }
+
+        .order-card {
+            background: #161b22;
+            border-left: 4px solid #58a6ff;
+            margin-bottom: 10px;
+            padding: 15px;
+            border-radius: 12px;
+        }
+
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    </style>
+</head>
+<body class="pb-32">
+
+    <!-- Auth Section -->
+    <div id="auth-overlay" class="fixed inset-0 z-[200] bg-[#0d1117] flex items-center justify-center p-4">
+        <div class="w-full max-w-md bg-[#161b22] p-8 rounded-3xl border border-[#30363d]">
+            <div class="text-center mb-8">
+                <img src="https://i.ibb.co/Y7wgwmcP/logo.png" class="w-20 h-20 mx-auto mb-4 object-contain" alt="Logo">
+                <h1 id="auth-title" class="text-2xl font-bold tracking-tight">অ্যাকাউন্ট তৈরি করুন</h1>
+            </div>
+            <div id="register-view" class="space-y-4">
+                <input type="text" id="reg-name" placeholder="আপনার নাম" class="w-full bg-[#0d1117] border border-[#30363d] p-4 rounded-2xl outline-none focus:border-[#58a6ff]">
+                <input type="number" id="reg-phone" placeholder="ফোন নম্বর" class="w-full bg-[#0d1117] border border-[#30363d] p-4 rounded-2xl outline-none focus:border-[#58a6ff]">
+                <input type="password" id="reg-pass" placeholder="পাসওয়ার্ড" class="w-full bg-[#0d1117] border border-[#30363d] p-4 rounded-2xl outline-none focus:border-[#58a6ff]">
+                <button onclick="handleRegister()" class="w-full bg-[#58a6ff] text-white font-bold py-4 rounded-2xl text-lg shadow-lg">রেজিস্ট্রেশন</button>
+                <p class="text-center text-sm text-gray-400">অ্যাকাউন্ট আছে? <span onclick="toggleAuth('login')" class="text-[#58a6ff] cursor-pointer font-bold">লগইন</span></p>
+            </div>
+            <div id="login-view" class="hidden space-y-4">
+                <input type="number" id="log-phone" placeholder="ফোন নম্বর" class="w-full bg-[#0d1117] border border-[#30363d] p-4 rounded-2xl outline-none focus:border-[#58a6ff]">
+                <input type="password" id="log-pass" placeholder="পাসওয়ার্ড" class="w-full bg-[#0d1117] border border-[#30363d] p-4 rounded-2xl outline-none focus:border-[#58a6ff]">
+                <button onclick="handleLogin()" class="w-full bg-green-600 text-white font-bold py-4 rounded-2xl text-lg shadow-lg">লগইন</button>
+                <p class="text-center text-sm text-gray-400">নতুন মেম্বার? <span onclick="toggleAuth('register')" class="text-[#58a6ff] cursor-pointer font-bold">রেজিস্ট্রেশন</span></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="bg-[#161b22]/90 backdrop-blur-md p-5 flex justify-between items-center sticky top-0 z-40 border-b border-[#30363d]">
+        <div class="flex items-center gap-3">
+            <img src="https://i.ibb.co/Y7wgwmcP/logo.png" class="w-10 h-10" alt="Logo">
+            <span class="font-black text-2xl text-[#58a6ff]">FAST<span class="text-white">TOPUP</span></span>
+        </div>
+        <div class="bg-[#21262d] px-4 py-2 rounded-2xl border border-[#30363d] flex items-center gap-2">
+            <i class="fa-solid fa-wallet text-orange-400"></i>
+            <span id="display-balance" class="font-black text-lg text-orange-400">০ ৳</span>
+        </div>
+    </header>
+
+    <!-- Notice -->
+    <div class="bg-red-600 overflow-hidden py-2">
+        <div class="notice-animate text-[13px] font-bold text-white uppercase flex items-center gap-4">
+            <span>২৪ ঘণ্টায় টপ-আপ চালু থাকে। ১০ সেকেন্ডে অটো ডেলিভারি সিস্টেম। প্লেয়ার আইডি ভুল দিলে কতৃপক্ষ দায়ী থাকবে না।</span>
+        </div>
+    </div>
+
+    <!-- PAGE: HOME -->
+    <div id="page-home" class="space-y-6">
+        <div class="px-4 pt-6" id="banner-slider">
+            <div class="slide active">
+                <div class="relative w-full h-48 rounded-[32px] overflow-hidden bg-gradient-to-r from-blue-900 to-black border border-[#30363d] flex items-center px-8">
+                    <div class="z-10">
+                        <h2 class="text-xl font-black text-white">১০০% নিরাপদ শপ</h2>
+                        <p class="text-xs text-blue-300">আপনার আইডির নিরাপত্তা আমাদের দায়িত্ব</p>
+                    </div>
+                    <i class="fa-solid fa-shield-halved absolute right-8 text-8xl text-blue-500/20"></i>
+                </div>
+            </div>
+            <div class="slide">
+                <div class="relative w-full h-48 rounded-[32px] overflow-hidden bg-gradient-to-r from-orange-600 to-red-900 border border-[#30363d] flex items-center px-8">
+                    <div class="z-10">
+                        <h2 class="text-xl font-black text-white">অটো ডেলিভারি</h2>
+                        <p class="text-xs text-orange-200">অর্ডার করার ১০ সেকেন্ডে টপআপ</p>
+                    </div>
+                    <i class="fa-solid fa-bolt absolute right-8 text-8xl text-orange-400/20"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="px-4 grid grid-cols-2 gap-4">
+            <div onclick="openOrderModal('UID Topup')" class="gaming-card p-4 rounded-[24px] cursor-pointer active:scale-95">
+                <img src="https://i.ibb.co/wNGjxFCm/uid-topup.jpg" class="item-img">
+                <h4 class="font-bold text-xs text-center">আইডি কোড টপআপ</h4>
+            </div>
+            <div onclick="openOrderModal('Membership')" class="gaming-card p-4 rounded-[24px] cursor-pointer active:scale-95">
+                <img src="https://i.ibb.co/ycwhY4y8/membership.jpg" class="item-img">
+                <h4 class="font-bold text-xs text-center">উইকলি/মান্থলি</h4>
+            </div>
+            <div onclick="openOrderModal('Level Up Pass')" class="gaming-card p-4 rounded-[24px] cursor-pointer active:scale-95">
+                <img src="https://i.ibb.co/gb18yH0N/levelup.jpg" class="item-img">
+                <h4 class="font-bold text-xs text-center">লেভেল আপ পাস</h4>
+            </div>
+            <div onclick="openOrderModal('Evo Access')" class="gaming-card p-4 rounded-[24px] cursor-pointer active:scale-95">
+                <div class="bg-gradient-to-br from-indigo-600 to-purple-800 w-full h-[120px] rounded-xl flex items-center justify-center mb-2">
+                    <i class="fa-solid fa-fire-glow text-4xl text-white"></i>
+                </div>
+                <h4 class="font-bold text-xs text-center">Evo Access</h4>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE: ORDERS -->
+    <div id="page-orders" class="hidden-page p-6">
+        <h3 class="font-black text-2xl mb-6 flex items-center gap-2"><i class="fa-solid fa-receipt text-[#58a6ff]"></i> অর্ডার হিস্ট্রি</h3>
+        <div id="order-history-list" class="space-y-3 pb-20"></div>
+    </div>
+
+    <!-- PAGE: PROFILE -->
+    <div id="page-profile" class="hidden-page p-6">
+        <h3 class="font-black text-2xl mb-6 flex items-center gap-2"><i class="fa-solid fa-user-circle text-[#58a6ff]"></i> আমার প্রোফাইল</h3>
+        <div class="bg-[#161b22] p-8 rounded-[32px] border border-[#30363d] space-y-6">
+            <div class="flex items-center gap-4 border-b border-[#30363d] pb-6">
+                <div class="w-16 h-16 bg-[#58a6ff] rounded-full flex items-center justify-center text-3xl font-black">
+                    <span id="prof-initial">U</span>
+                </div>
+                <div>
+                    <h2 id="prof-name" class="text-xl font-bold">User Name</h2>
+                    <p id="prof-phone" class="text-gray-500 text-sm">017XXXXXXXX</p>
+                </div>
+            </div>
+            <div class="space-y-4">
+                <div class="flex justify-between items-center p-4 bg-[#0d1117] rounded-2xl border border-[#30363d]">
+                    <span class="text-gray-400 font-bold">আমার ব্যালেন্স</span>
+                    <span id="prof-balance" class="text-orange-400 font-black text-lg">০ ৳</span>
+                </div>
+                <button onclick="handleLogout()" class="w-full bg-red-600/20 text-red-500 py-4 rounded-2xl font-bold border border-red-600/30 active:scale-95 transition-all">লগআউট করুন</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Nav -->
+    <nav class="bg-[#161b22]/98 backdrop-blur-xl border-t border-[#30363d] fixed bottom-0 left-0 right-0 p-5 flex justify-around items-end z-50 rounded-t-[40px] shadow-2xl">
+        <button onclick="switchTab('home')" id="tab-home" class="flex flex-col items-center active-nav">
+            <i class="fa-solid fa-house-chimney text-2xl"></i>
+            <span class="text-[10px] font-bold mt-1">হোম</span>
+        </button>
+        <button onclick="msg('টাকা অ্যাড করতে পেমেন্ট অপশনে ক্লিক করুন!')" class="flex flex-col items-center">
+            <div class="bg-[#58a6ff] w-14 h-14 rounded-2xl flex items-center justify-center -mb-5 border-4 border-[#0d1117] shadow-lg">
+                <i class="fa-solid fa-plus text-white text-2xl"></i>
+            </div>
+            <span class="text-[10px] font-bold mt-6 text-[#58a6ff]">টাকা অ্যাড</span>
+        </button>
+        <button onclick="switchTab('orders')" id="tab-orders" class="flex flex-col items-center">
+            <i class="fa-solid fa-receipt text-2xl"></i>
+            <span class="text-[10px] font-bold mt-1">অর্ডার</span>
+        </button>
+        <button onclick="switchTab('profile')" id="tab-profile" class="flex flex-col items-center">
+            <i class="fa-solid fa-user text-2xl"></i>
+            <span class="text-[10px] font-bold mt-1">প্রোফাইল</span>
+        </button>
+    </nav>
+
+    <!-- Modal: Order -->
+    <div id="modal-order" class="modal px-4">
+        <div class="bg-[#161b22] w-full max-w-lg rounded-[40px] p-6 border border-[#30363d] my-8 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h3 id="modal-title" class="font-black text-2xl text-[#58a6ff]">প্যাকেজ নির্বাচন</h3>
+                <button onclick="closeModals()" class="text-3xl text-gray-500">&times;</button>
+            </div>
+            
+            <div class="space-y-6">
+                <div class="grid grid-cols-2 gap-3" id="pkg-container"></div>
+
+                <div class="relative">
+                    <p class="text-xs font-bold text-gray-400 mb-2 ml-2 uppercase tracking-widest">প্লেয়ার আইডি (UID)</p>
+                    <input type="number" id="order-uid" placeholder="এখানে আইডি কোড দিন" class="w-full bg-[#0d1117] border-2 border-[#30363d] p-4 rounded-2xl outline-none focus:border-[#58a6ff] text-center font-black text-xl tracking-widest">
+                </div>
+
+                <div class="space-y-3">
+                    <p class="text-xs font-bold text-gray-500 text-center uppercase">পেমেন্ট মাধ্যম</p>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div onclick="selectPayment('bkash')" id="pay-bkash" class="payment-option p-4 border-2 border-[#30363d] rounded-2xl text-center cursor-pointer">
+                            <img src="https://i.ibb.co/VWVvTDPF/bkash.png" class="h-6 mx-auto mb-1" alt="Bkash">
+                            <p class="text-[10px] font-bold">বিকাশ</p>
+                        </div>
+                        <div onclick="selectPayment('nagad')" id="pay-nagad" class="payment-option p-4 border-2 border-[#30363d] rounded-2xl text-center cursor-pointer">
+                            <img src="https://i.ibb.co/6R2M3SBT/nagad.png" class="h-6 mx-auto mb-1" alt="Nagad">
+                            <p class="text-[10px] font-bold">নগদ</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="manual-pay-info" class="hidden bg-blue-900/20 p-5 rounded-3xl border border-blue-500/30 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-blue-300 uppercase tracking-wider" id="pay-method-name">পেমেন্ট করুন</span>
+                        <span id="target-number" class="text-lg font-black text-white bg-blue-500/20 px-3 py-1 rounded-lg">017XXXXXXXX</span>
+                    </div>
+                    <div class="bg-black/40 p-4 rounded-2xl border border-white/5 text-center">
+                        <p class="text-[10px] text-gray-400">বিকাশ/নগদ অ্যাপ থেকে 'Send Money' করুন</p>
+                        <p class="text-2xl font-black text-orange-400 mt-1">বিল: <span id="bill-amount">০</span> ৳</p>
+                    </div>
+                    <div class="space-y-2">
+                        <p class="text-[10px] font-bold text-gray-500 ml-1">TRANSACTION ID (TRXID)</p>
+                        <input type="text" id="trx-id" placeholder="TrxID এখানে দিন" class="w-full bg-[#0d1117] border border-[#30363d] p-4 rounded-xl text-center text-sm outline-none focus:border-white font-bold tracking-widest uppercase">
+                    </div>
+                </div>
+
+                <button onclick="placeFinalOrder()" class="w-full bg-[#58a6ff] py-5 rounded-[28px] font-black text-white text-xl shadow-lg active:scale-95">অর্ডার কনফার্ম</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="fixed top-8 left-1/2 -translate-x-1/2 z-[300] hidden">
+        <div id="toast-content" class="bg-[#58a6ff] text-white px-8 py-3 rounded-full font-black shadow-2xl"></div>
+    </div>
+
+    <script>
+        let currentUser = null;
+        let currentPrice = 0;
+        let selectedPkgName = "";
+        let selectedMethod = "";
+        let slideIndex = 0;
+        let orderHistory = [];
+
+        // Updated packages logic as per request (3x formats)
+        const pkgTypes = {
+            'UID Topup': [
+                {n: '২৫ ডাইমন্ড', p: 23}, {n: '৫০ ডাইমন্ড', p: 45}, {n: '১১৫ ডাইমন্ড', p: 85}, 
+                {n: '২৪০ ডাইমন্ড', p: 165}, {n: '৬১০ ডাইমন্ড', p: 420}, {n: '১২৪০ ডাইমন্ড', p: 830},
+                {n: '২৫৩০ ডাইমন্ড', p: 1650}, {n: '৫৬০০ ডাইমন্ড', p: 3450}
+            ],
+            'Membership': [
+                {n: '1x Weekly', p: 160}, {n: '2x Weekly', p: 320}, {n: '3x Weekly', p: 480},
+                {n: '1x Monthly', p: 750}, {n: '2x Monthly', p: 1500}, {n: '3x Monthly', p: 2250}
+            ],
+            'Level Up Pass': [
+                {n: 'Level Up Pass', p: 165}
+            ],
+            'Evo Access': [
+                {n: 'Evo Access Lv1', p: 450}, {n: 'Evo Access Lv2', p: 850}, {n: 'Evo Access Lv3', p: 1250}
+            ]
+        };
+
+        window.onload = function() {
+            const savedUser = localStorage.getItem('fastTopupUser');
+            const savedOrders = localStorage.getItem('fastTopupOrders');
+            if(savedUser) {
+                currentUser = JSON.parse(savedUser);
+                document.getElementById('auth-overlay').style.display = 'none';
+                updateUI();
+            }
+            if(savedOrders) { orderHistory = JSON.parse(savedOrders); renderOrderHistory(); }
+            startSlider();
+        };
+
+        function startSlider() {
+            const slides = document.querySelectorAll('.slide');
+            setInterval(() => {
+                slides[slideIndex].classList.remove('active');
+                slideIndex = (slideIndex + 1) % slides.length;
+                slides[slideIndex].classList.add('active');
+            }, 6000);
+        }
+
+        function handleRegister() {
+            const n = document.getElementById('reg-name').value;
+            const p = document.getElementById('reg-phone').value;
+            const pass = document.getElementById('reg-pass').value;
+            if(!n || p.length < 11 || !pass) return msg('সঠিক তথ্য দিন', true);
+            currentUser = { name: n, phone: p, pass: pass, balance: 0 };
+            localStorage.setItem('fastTopupUser', JSON.stringify(currentUser));
+            document.getElementById('auth-overlay').style.display = 'none';
+            updateUI();
+            msg('রেজিস্ট্রেশন সফল!');
+        }
+
+        function handleLogin() {
+            const p = document.getElementById('log-phone').value;
+            const pass = document.getElementById('log-pass').value;
+            const saved = JSON.parse(localStorage.getItem('fastTopupUser'));
+            if(saved && saved.phone === p && saved.pass === pass) {
+                currentUser = saved;
+                document.getElementById('auth-overlay').style.display = 'none';
+                updateUI();
+                msg('লগইন সফল!');
+            } else { msg('ভুল ফোন নম্বর বা পাসওয়ার্ড!', true); }
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('fastTopupUser');
+            location.reload();
+        }
+
+        function updateUI() { 
+            document.getElementById('display-balance').innerText = currentUser.balance + ' ৳';
+            document.getElementById('prof-name').innerText = currentUser.name;
+            document.getElementById('prof-phone').innerText = currentUser.phone;
+            document.getElementById('prof-initial').innerText = currentUser.name.charAt(0).toUpperCase();
+            document.getElementById('prof-balance').innerText = currentUser.balance + ' ৳';
+        }
+
+        function openOrderModal(type) {
+            document.getElementById('modal-title').innerText = type;
+            const container = document.getElementById('pkg-container');
+            container.innerHTML = '';
+            pkgTypes[type].forEach(pkg => {
+                const b = document.createElement('div');
+                b.className = "p-4 border-2 border-[#30363d] rounded-[20px] text-center cursor-pointer bg-[#0d1117] transition-all active:scale-95";
+                b.innerHTML = `<div class="font-bold text-[10px] uppercase text-gray-400">${pkg.n}</div><div class="text-[#58a6ff] font-black text-sm">${pkg.p}৳</div>`;
+                b.onclick = () => {
+                    document.querySelectorAll('#pkg-container div').forEach(d => d.classList.remove('border-[#58a6ff]', 'bg-blue-900/20'));
+                    b.classList.add('border-[#58a6ff]', 'bg-blue-900/20');
+                    currentPrice = pkg.p;
+                    selectedPkgName = pkg.n;
+                    document.getElementById('bill-amount').innerText = pkg.p;
+                };
+                container.appendChild(b);
+            });
+            document.getElementById('modal-order').style.display = 'flex';
+        }
+
+        function selectPayment(m) {
+            selectedMethod = m;
+            document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
+            document.getElementById('pay-'+m).classList.add('selected');
+            const info = document.getElementById('manual-pay-info');
+            info.classList.remove('hidden');
+            document.getElementById('pay-method-name').innerText = m === 'bkash' ? 'বিকাশ (Personal):' : 'নগদ (Personal):';
+            document.getElementById('target-number').innerText = m === 'bkash' ? '01700686835' : '0184872988';
+        }
+
+        function placeFinalOrder() {
+            const uid = document.getElementById('order-uid').value;
+            const trx = document.getElementById('trx-id').value;
+            if(!uid) return msg('প্লেয়ার আইডি দিন!', true);
+            if(currentPrice === 0) return msg('প্যাকেজ বাছাই করুন!', true);
+            if(!selectedMethod) return msg('পেমেন্ট মাধ্যম বেছে নিন!', true);
+            if(!trx) return msg('TrxID দিন!', true);
+            
+            const order = {
+                id: Math.floor(1000 + Math.random() * 9000),
+                item: selectedPkgName,
+                uid: uid,
+                price: currentPrice,
+                status: 'Processing',
+                method: selectedMethod,
+                time: new Date().toLocaleString('bn-BD')
+            };
+            orderHistory.unshift(order);
+            localStorage.setItem('fastTopupOrders', JSON.stringify(orderHistory));
+            renderOrderHistory();
+            msg('অর্ডারটি জমা হয়েছে!');
+            closeModals();
+        }
+
+        function renderOrderHistory() {
+            const list = document.getElementById('order-history-list');
+            if(orderHistory.length === 0) {
+                list.innerHTML = `<div class="text-center p-20 opacity-30 italic flex flex-col items-center gap-3"><i class="fa-solid fa-box-open text-5xl"></i> কোনো অর্ডার নেই</div>`;
+                return;
+            }
+            list.innerHTML = orderHistory.map(o => `
+                <div class="order-card">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="font-black text-[#58a6ff] tracking-widest">#${o.id}</span>
+                        <span class="bg-orange-500/20 text-orange-400 text-[9px] px-3 py-1 rounded-full font-black uppercase tracking-tighter">${o.status}</span>
+                    </div>
+                    <div class="text-sm font-bold text-gray-200">${o.item}</div>
+                    <div class="text-[11px] text-gray-500 mt-1 font-bold">UID: ${o.uid} | পেমেন্ট: ${o.method.toUpperCase()}</div>
+                    <div class="flex justify-between items-end mt-3 pt-2 border-t border-white/5">
+                        <span class="text-[9px] text-gray-600">${o.time}</span>
+                        <span class="font-black text-white text-lg">${o.price} ৳</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function switchTab(t) {
+            document.getElementById('page-home').classList.add('hidden-page');
+            document.getElementById('page-orders').classList.add('hidden-page');
+            document.getElementById('page-profile').classList.add('hidden-page');
+            document.getElementById('page-'+t).classList.remove('hidden-page');
+            document.querySelectorAll('nav button').forEach(b => b.classList.remove('active-nav'));
+            document.getElementById('tab-'+t).classList.add('active-nav');
+            if(t === 'orders') renderOrderHistory();
+            if(t === 'profile') updateUI();
+        }
+
+        function toggleAuth(v) {
+            document.getElementById('register-view').classList.toggle('hidden', v === 'login');
+            document.getElementById('login-view').classList.toggle('hidden', v === 'register');
+            document.getElementById('auth-title').innerText = v === 'login' ? 'অ্যাকাউন্টে লগইন করুন' : 'অ্যাকাউন্ট তৈরি করুন';
+        }
+
+        function closeModals() { 
+            document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); 
+            currentPrice = 0;
+            document.getElementById('order-uid').value = '';
+            document.getElementById('trx-id').value = '';
+            document.getElementById('manual-pay-info').classList.add('hidden');
+        }
+
+        function msg(t, isE) {
+            const toast = document.getElementById('toast');
+            const cont = document.getElementById('toast-content');
+            cont.innerText = t; cont.style.backgroundColor = isE ? '#ef4444' : '#10b981';
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 2500);
+        }
+    </script>
+</body>
+</html>
+
+```
